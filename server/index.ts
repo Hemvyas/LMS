@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser"
+import mongoose from "mongoose"
+import { error } from "console";
 require("dotenv").config();
 
 
@@ -10,9 +12,24 @@ app.use(cookieParser());
 app.use(cors());
 
 
-const port=process.env.PORT || 8000;
+
+
+const DB_URL:string=process.env.DB_URL || '';
+
+const DBConnection=async()=>{
+  try {
+    await mongoose.connect(DB_URL).
+    then(()=>console.log("DB Connected")).
+    catch((err)=>console.log(err))
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const port = process.env.PORT || 8000;
 app.listen(port, () => {
   console.log(`Server started at ${port}`);
+  DBConnection();
 });
 
 app.get("/", (req:Request,res:Response,next:NextFunction)=>{
