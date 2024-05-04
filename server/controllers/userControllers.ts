@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { Express, NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/userModel";
 import bcrypt from "bcryptjs";
 import jwt, { JwtPayload as DefaultJwtPayload, Jwt } from "jsonwebtoken";
@@ -60,7 +60,6 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 };
 
 
-
 //verify-otp
 interface JwtPayload extends DefaultJwtPayload {
   email: string;
@@ -96,4 +95,44 @@ export const verifyOtp=async(req:Request,res:Response)=>{
          }
          res.status(500).json({ message: "Internal server error" });
     }
+}
+
+
+//login
+export const login=async(req:Request,res:Response)=>{
+  const { email,password } = req.body;
+  
+  try {
+    const user=await User.findOne({email}).select("+password");
+   if (!user) {
+     return res.status(404).json("User not found");
+   }
+
+   const isMatch=await bcrypt.compare(password,user.password);
+    if (!isMatch) {
+      return res.status(400).json("Invalid credentials");
+    }
+    let token = jwt.sign({ id: user._id }, process.env.JWT_KEY || "secret", {
+      expiresIn: "1h",
+    });
+
+    res.cookie('token',token,{
+      httpOnly:true,
+    })
+        const { password: _, ...userDetails } = user.toObject();
+    res.status(200).json({
+      message: "Logged in successfully",
+      user: userDetails,
+      token,
+    });
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error logging in user");
+  }
+}
+
+export const logout =async(req:Request,res:Response)=>{
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logged out successfully" });
 }
