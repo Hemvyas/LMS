@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import mongoose from "mongoose"
-import { error } from "console";
+import userRouter from "./routes/userRoutes";
 require("dotenv").config();
 
 
@@ -10,9 +10,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
-
-
-
+app.use("/api/user",userRouter);
 
 const DB_URL:string=process.env.DB_URL || '';
 
