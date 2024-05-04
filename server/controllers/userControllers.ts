@@ -215,9 +215,7 @@ export const updateAvatar=async(req:Request,res:Response)=>{
   try {
     const {avatar}=req.body;
     const {id}=req.params;
-    const user = await User.findById(id);
-    console.log(user);
-    
+    const user = await User.findById(id);    
     if(user && avatar){
       //delete old image from server folder
       if(user?.avatar?.id){
