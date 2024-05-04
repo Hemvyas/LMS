@@ -6,6 +6,7 @@ import jwt, { JwtPayload as DefaultJwtPayload, Jwt } from "jsonwebtoken";
 import ejs from "ejs"
 import path from "path";
 import nodemailer from "nodemailer"
+import cloudinary from "cloudinary"
 
 
 //register
@@ -135,4 +136,117 @@ export const login=async(req:Request,res:Response)=>{
 export const logout =async(req:Request,res:Response)=>{
   res.clearCookie("token");
   res.status(200).json({ message: "Logged out successfully" });
+}
+
+
+//updateUser
+export const updateUser=async(req:Request,res:Response)=>{
+  const {id}=req.params;
+  const {name}=req.body;
+  try {
+    const user=await User.findById(id);
+if (!user) {
+  return res.status(404).json({ message: "User not found" });
+}
+  user.name=name ?? user.name;
+  await user.save();
+  res.status(200).json({ message: "User updated successfully", user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating user" });
+  }
+}
+
+//updatePass
+export const updatePassword=async(req:Request,res:Response)=>{
+  const {id}=req.params;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(404).json({ message: "Password not found" });
+  }
+try {
+  const user=await User.findById(id).select('+password');
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ message: "Invalid password" });
+  }
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+  res.status(200).json({ message: "Password updated successfully" });
+
+} catch (error) {
+  console.error(error);
+  res.status(500).json({ message: "Error updating password" });
+}
+}
+
+//getUser
+export const getUser=async(req:Request,res:Response)=>{
+  const id=req.params.id;
+  try {
+    const user=await User.findById(id);
+    if(!user){
+      return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json(user)
+  } catch (error) {
+     console.error(error);
+     res.status(500).json({ message: "Error retrieving user" });
+  }
+}
+
+//getAllUser
+export const getAllUser=async(req:Request,res:Response)=>{
+  try {
+    const users=await User.find().sort({_id:-1})
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error retrieving users" });
+  }
+}
+
+//updateAvatar
+export const updateAvatar=async(req:Request,res:Response)=>{
+  try {
+    const {avatar}=req.body;
+    const {id}=req.params;
+    const user = await User.findById(id);
+    console.log(user);
+    
+    if(user && avatar){
+      //delete old image from server folder
+      if(user?.avatar?.id){
+        await cloudinary.v2.uploader.destroy(user?.avatar?.id);
+
+        const cloud=await cloudinary.v2.uploader.upload(avatar,{
+          folder:"avatar",
+          width:150
+        });
+        user.avatar={
+          id:cloud.public_id,
+          url:cloud.secure_url
+        }
+      }
+      else{
+        const cloud=await cloudinary.v2.uploader.upload(avatar,{
+          folder:"avatar",
+          width:150
+        });
+        user.avatar={
+          id:cloud.public_id,
+          url:cloud.secure_url
+        }
+      }
+    }
+    await user?.save();
+    res.status(200).json("Avatar Updated Successfully");
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error Updating Avatar" });
+  }
 }

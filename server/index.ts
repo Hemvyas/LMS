@@ -1,3 +1,4 @@
+import { v2 as cloudinary } from 'cloudinary';
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser"
@@ -10,6 +11,13 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 app.use("/api/user",userRouter);
+
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_SECRET,
+});
 
 const DB_URL:string=process.env.DB_URL || '';
 

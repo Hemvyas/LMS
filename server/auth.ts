@@ -24,3 +24,5 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
     res.status(401).json({ auth: false, message: "Invalid token" });
   }
 };
+
+export default authenticate;
