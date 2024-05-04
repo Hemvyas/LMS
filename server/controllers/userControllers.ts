@@ -50,7 +50,6 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         console.log(error);
         res.status(500).send("Error sending email");
       } else {
-        console.log("Email sent: " + info.response);
         res.json({ message: "Please check your email to verify your account",token });
       }
     })
@@ -113,7 +112,7 @@ export const login=async(req:Request,res:Response)=>{
     if (!isMatch) {
       return res.status(400).json("Invalid credentials");
     }
-    let token = jwt.sign({ id: user._id }, process.env.JWT_KEY || "secret", {
+    let token = jwt.sign({ id: user._id,role:user.role }, process.env.JWT_KEY || "secret", {
       expiresIn: "1h",
     });
 

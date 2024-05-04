@@ -1,6 +1,6 @@
 import { getAllUser, getUser, login, logout, register, updateAvatar, updatePassword, updateUser, verifyOtp } from './../controllers/userControllers';
 import express  from "express";
-import authenticate from "../auth"
+import {authenticate} from "../auth"
 const userRouter=express.Router();
 
 userRouter.post("/register",register);
